@@ -7,25 +7,21 @@ import streamlit as st
 from collections import defaultdict
 from prompts import *
 
-st.set_page_config(page_title="StreamlitChatMessageHistory", page_icon="📖")
-st.title("📖 StreamlitChatMessageHistory")
+st.set_page_config(page_title="AI Patients", page_icon="📖")
+st.title("📖 Chat with AI Patients")
 
-"""
-A basic example of using StreamlitChatMessageHistory to help LLMChain remember messages in a conversation.
-The messages are stored in Session State across re-runs automatically. You can view the contents of Session State
-in the expander below. View the
-[source code for this app](https://github.com/langchain-ai/streamlit-agent/blob/main/streamlit_agent/basic_memory.py).
-"""
+# """
+
+# [Built on](https://github.com/langchain-ai/streamlit-agent/blob/main/streamlit_agent/basic_memory.py).
+# """
 
 
-learning_method = st.radio("Select an option:", ("Interact with an AI simulated patient", "Learn the Basics"), index=0)
+# learning_method = st.radio("Select an option:", ("Interact with an AI simulated patient", "More to Come (nothing yet)"), index=0)
 
-clear_memory = st.button("Clear memory")
-if clear_memory:
-    st.session_state.langchain_messages = []
 
-if learning_method == "Interact with an AI simulated patient":         
-    system_context = st.radio("Select an AI patient who comes to the ED with:", ("abdominal pain", "chest pain", "bloody diarrhea", "random symptoms", "You choose!"), horizontal = True, index=0)
+
+# if learning_method == "Interact with an AI simulated patient":         
+system_context = st.radio("Select an AI patient who comes to the ED with:", ("abdominal pain", "chest pain", "bloody diarrhea", "random symptoms", "You choose!"), horizontal = True, index=0)
     
 if system_context == "abdominal pain":
     template = abd_pain_pt_template
@@ -49,7 +45,7 @@ if system_context == "You choose!":
 msgs = StreamlitChatMessageHistory(key="langchain_messages")
 memory = ConversationBufferMemory(chat_memory=msgs)
 if len(msgs.messages) == 0:
-    msgs.add_ai_message("I am so uncomfortable!")
+    msgs.add_ai_message("I can't believe I'm in the ER!")
 
 # view_messages = st.expander("View the message contents in session state")
 
@@ -62,12 +58,6 @@ if not openai_api_key:
     st.info("Enter an OpenAI API Key to continue")
     st.stop()
 
-# Set up the LLMChain, passing in memory
-# template = """You are an AI chatbot having a conversation with a human.
-
-# {history}
-# Human: {human_input}
-# AI: """
 
 
 prompt = PromptTemplate(input_variables=["history", "human_input"], template=template)
@@ -79,20 +69,11 @@ for msg in msgs.messages:
 
 # If user inputs a new prompt, generate and draw a new response
 if prompt := st.chat_input():
-    st.chat_message("human").write(prompt)
+    st.chat_message("user").write(prompt)
     # Note: new messages are saved to history automatically by Langchain during run
     response = llm_chain.run(prompt)
-    st.chat_message("ai").write(response)
+    st.chat_message("assistant").write(response)
 
-# # Draw the messages at the end, so newly generated ones show up immediately
-# with view_messages:
-#     """
-#     Memory initialized with:
-#     ```python
-#     msgs = StreamlitChatMessageHistory(key="langchain_messages")
-#     memory = ConversationBufferMemory(chat_memory=msgs)
-#     ```
-
-#     Contents of `st.session_state.langchain_messages`:
-#     """
-#     view_messages.json(st.session_state.langchain_messages)
+clear_memory = st.button("Start Over")
+if clear_memory:
+    st.session_state.langchain_messages = []
